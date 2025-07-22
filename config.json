@@ -1,16 +1,65 @@
 {
   "title": "Kristomi's Bookmarklets",
   "description": "Select a script to run on this page",
-  "version": "1.0.0",
+  "version": "0.16",
+  "updated": "2025-07-23",
+  "theme": {
+    "colors": {
+      "primary": "#667eea",
+      "secondary": "#764ba2",
+      "background": "#ffffff",
+      "overlay": "rgba(0, 0, 0, 0.8)",
+      "border": "#e5e7eb",
+      "text": "#374151",
+      "textLight": "#6b7280",
+      "buttonHover": "#f3f4f6",
+      "buttonHoverBorder": "#9ca3af",
+      "categoryText": "#374151",
+      "success": "#10b981",
+      "successHover": "#059669"
+    },
+    "fonts": {
+      "primary": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "mono": "'Courier New', monospace"
+    },
+    "spacing": {
+      "containerPadding": "30px",
+      "headerPadding": "24px 24px 16px",
+      "contentPadding": "20px 24px",
+      "footerPadding": "16px 24px",
+      "buttonPadding": "14px 16px",
+      "borderRadius": "12px",
+      "buttonRadius": "8px"
+    },
+    "shadows": {
+      "menu": "0 20px 60px rgba(0, 0, 0, 0.3)",
+      "button": "0 2px 8px rgba(0, 0, 0, 0.1)"
+    },
+    "animations": {
+      "menuSlideIn": "menuSlideIn 0.3s ease-out",
+      "buttonTransition": "all 0.2s ease"
+    }
+  },
+  "ui": {
+    "maxWidth": "450px",
+    "maxHeight": "80vh",
+    "loadingText": "⏳ Loading scripts...",
+    "cancelText": "Cancel",
+    "errorPrefix": "Error loading script:",
+    "successPrefix": "Successfully loaded script:",
+    "blurEffect": true,
+    "showVersion": true,
+    "showCloseOnEscape": true,
+    "showClickOutsideToClose": true
+  },
   "categories": {
     "Scrapers": {
-      "Test Script": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/scrapers/test.js",
-      "Kindle Highlights": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/scrapers/kindle-highlights.js"
+      "Kindle Highlights": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/scrapers/kindle-highlights.js",
+      "Test Script": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/scrapers/test.js"
     },
     "LLMs": {
       "Claude Export": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/llms/claude.js",
       "ChatGPT Export": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/llms/chatgpt.js"
     }
-  },
-  "updated": "2025-07-22"
+  }
 }

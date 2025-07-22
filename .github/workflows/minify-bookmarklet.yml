@@ -28,7 +28,7 @@ jobs:
       - name: Minify bookmarklet
         run: |
           echo "Minifying scripts/menu.js..."
-          uglifyjs scripts/menu.js -c -m --preamble "javascript:" > bookmarklet-min.js
+          uglifyjs scripts/menu.js -c -m -b preamble='"javascript:"' -o bookmarklet-min.js
           
       - name: Generate README with bookmarklet
         run: |
