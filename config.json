@@ -1,0 +1,15 @@
+{
+  "title": "Kristomi's Bookmarklets",
+  "description": "Select a script to run on this page",
+  "version": "1.0.0",
+  "categories": {
+    "Scrapers": {
+      "Kindle Highlights": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/scrapers/kindle-highlights.js"
+    },
+    "LLMs": {
+      "Claude Export": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/llms/claude.js",
+      "ChatGPT Export": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/llms/chatgpt.js"
+    }
+  },
+  "updated": "2025-07-22"
+}
