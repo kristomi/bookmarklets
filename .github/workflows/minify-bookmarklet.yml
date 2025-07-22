@@ -1,0 +1,82 @@
+name: Minify Bookmarklet
+
+on:
+  push:
+    paths:
+      - 'scripts/menu.js'
+      - 'config.json'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  minify:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install uglify-js
+        run: npm install -g uglify-js
+        
+      - name: Minify bookmarklet
+        run: |
+          echo "Minifying scripts/menu.js..."
+          uglify-js scripts/menu.js -c -m --preamble "javascript:" > bookmarklet-min.js
+          
+      - name: Generate README with bookmarklet
+        run: |
+          echo "# Kristomi's Bookmarklets" > README-temp.md
+          echo "" >> README-temp.md
+          echo "## 📚 Installation" >> README-temp.md
+          echo "" >> README-temp.md
+          echo "Drag this link to your bookmarks bar:" >> README-temp.md
+          echo "" >> README-temp.md
+          echo "\`\`\`javascript" >> README-temp.md
+          cat bookmarklet-min.js >> README-temp.md
+          echo "" >> README-temp.md
+          echo "\`\`\`" >> README-temp.md
+          echo "" >> README-temp.md
+          echo "## 🚀 Usage" >> README-temp.md
+          echo "" >> README-temp.md
+          echo "1. Click the bookmarklet on any webpage" >> README-temp.md
+          echo "2. Select the script you want to run" >> README-temp.md
+          echo "3. Follow the script's instructions" >> README-temp.md
+          echo "" >> README-temp.md
+          echo "## 📋 Available Scripts" >> README-temp.md
+          echo "" >> README-temp.md
+          node -e "
+            const fs = require('fs');
+            const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+            Object.keys(config.categories).forEach(category => {
+              console.log('### ' + category);
+              console.log('');
+              Object.keys(config.categories[category]).forEach(script => {
+                console.log('- **' + script + '**');
+              });
+              console.log('');
+            });
+          " >> README-temp.md
+          echo "" >> README-temp.md
+          echo "_Last updated: $(date)_" >> README-temp.md
+          mv README-temp.md README.md
+          
+      - name: Check for changes
+        id: verify_diff
+        run: |
+          git diff --quiet . || echo "changed=true" >> $GITHUB_OUTPUT
+          
+      - name: Commit changes
+        if: steps.verify_diff.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add bookmarklet-min.js README.md
+          git commit -m "🤖 Auto-minify bookmarklet and update README"
+          git push

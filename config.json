@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "categories": {
     "Scrapers": {
+      "Test Script": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/scrapers/test.js",
       "Kindle Highlights": "https://raw.githubusercontent.com/kristomi/bookmarklets/main/scripts/scrapers/kindle-highlights.js"
     },
     "LLMs": {
