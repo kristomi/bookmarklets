@@ -95,7 +95,7 @@ Prøv å:
             <div style="background: #f0f0f0; border-radius: 10px; overflow: hidden; margin-bottom: 16px;">
                 <div id="progress-bar" style="width: 0%; height: 8px; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s ease;"></div>
             </div>
-            <div style="font-size: 12px; color: #999;">Ikke lukk fanen mens scriptet kjører</div>
+            <div style="font-size: 12px; color: #999;">Du kan ikke lukke fanen mens scriptet kjører, men du kan trygt bla til andre faner</div>
         `;
         
         overlay.appendChild(progressBox);
@@ -123,6 +123,9 @@ Prøv å:
         
         updateProgress(`Fant ${books.length} bøker. Starter ekstraksjonen...`, 10);
         
+        // Store initial state to potentially reset to
+        const initialScrollPosition = window.scrollY;
+        
         for (let i = 0; i < books.length; i++) {
             const book = books[i];
             const progress = 10 + (i / books.length) * 80;
@@ -137,22 +140,57 @@ Prøv å:
                     bookElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     await new Promise(resolve => setTimeout(resolve, 500));
                     
+                    // Clear any existing highlights from previous books
+                    bookHighlights[book] = [];
+                    
                     bookElement.click();
                     
                     // Wait for highlights to load with longer timeout
                     await new Promise(resolve => setTimeout(resolve, 3000));
                     
-                    // Extract highlights with better selector
-                    const highlightElements = document.querySelectorAll('[id="highlight"], .kp-notebook-highlight');
+                    // Find the container that was expanded for this specific book
+                    // Look for highlights that are direct descendants of the clicked book's container
+                    const bookContainer = bookElement.closest('.kp-notebook-metadata') || bookElement.parentElement;
+                    let highlightElements = [];
+                    
+                    if (bookContainer) {
+                        // Try to find highlights within the expanded book container
+                        highlightElements = bookContainer.querySelectorAll('[id="highlight"], .kp-notebook-highlight');
+                    }
+                    
+                    // Fallback: if no highlights found in container, get all visible highlights
+                    // but filter out ones we've already processed
+                    if (highlightElements.length === 0) {
+                        const allHighlights = document.querySelectorAll('[id="highlight"], .kp-notebook-highlight');
+                        const processedHighlights = new Set();
+                        
+                        // Add all previously processed highlights to the set
+                        Object.values(bookHighlights).forEach(highlights => {
+                            highlights.forEach(highlight => processedHighlights.add(highlight));
+                        });
+                        
+                        highlightElements = Array.from(allHighlights).filter(el => {
+                            const text = el.textContent.trim();
+                            return text.length > 0 && !processedHighlights.has(text);
+                        });
+                    }
+                    
                     const highlights = Array.from(highlightElements)
                         .map(el => el.textContent.trim())
-                        .filter(text => text.length > 0);
+                        .filter(text => text.length > 0)
+                        .filter((text, index, arr) => arr.indexOf(text) === index); // Remove duplicates
                     
                     bookHighlights[book] = highlights;
                     
                     console.log(`✅ Extracted ${highlights.length} highlights from: ${book}`);
+                    
+                    // Collapse the book section by clicking again (optional)
+                    // bookElement.click();
+                    // await new Promise(resolve => setTimeout(resolve, 500));
+                    
                 } else {
                     console.warn(`⚠️ Could not find book element for: ${book}`);
+                    bookHighlights[book] = [];
                 }
             } catch (error) {
                 console.error(`❌ Could not extract highlights for: ${book}`, error);
