@@ -133,7 +133,7 @@ class BackgroundService {
         try {
             console.log('Checking for configuration updates from GitHub...');
             
-            const response = await fetch('https://raw.githubusercontent.com/kristomi/bookmarklets/main/config.json', {
+            const response = await fetch('https://raw.githubusercontent.com/kristomi/bookmarklets/refs/heads/main/config.json', {
                 cache: 'no-cache'
             });
             

@@ -3,7 +3,7 @@ class ScriptManager {
     constructor() {
         this.config = null;
         this.currentTab = null;
-        this.configUrl = 'https://raw.githubusercontent.com/kristomi/bookmarklets/main/config.json';
+        this.configUrl = 'https://raw.githubusercontent.com/kristomi/bookmarklets/refs/heads/main/config.json';
         this.init();
     }
     
