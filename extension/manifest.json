@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "Kristomi's Scripts",
+  "version": "0.18",
+  "description": "Collection of useful scripts for web scraping and export from Claude.ai, ChatGPT, and Kindle",
+  
+  "permissions": [
+    "activeTab",
+    "storage",
+    "notifications",
+    "contextMenus",
+    "idle",
+    "scripting"
+  ],
+  
+  "host_permissions": [
+    "https://claude.ai/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://read.amazon.com/*",
+    "https://raw.githubusercontent.com/*"
+  ],
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Kristomi's Scripts - Click to see available scripts"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*",
+        "https://chatgpt.com/*", 
+        "https://chat.openai.com/*",
+        "https://read.amazon.com/*",
+        "http://localhost:*/*",
+        "https://*/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*.png"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
