@@ -56,22 +56,21 @@
     "kindle-highlights": {
       "name": "Kindle Highlights",
       "category": "Scrapers",
-      "url": "https://raw.githubusercontent.com/kristomi/bookmarklets/refs/heads/main/scripts/scrapers/kindle-highlights.js",
-      "sites": ["read.amazon.com"],
       "description": "Extract highlights from Kindle notebook"
+    },
+    "substack-export": {
+      "name": "Substack Article Export",
+      "category": "Scrapers",
+      "description": "Extract Substack articles as markdown"
     },
     "claude-export": {
       "name": "Claude Export", 
       "category": "LLMs",
-      "url": "https://raw.githubusercontent.com/kristomi/bookmarklets/refs/heads/main/scripts/llms/claude.js",
-      "sites": ["claude.ai"],
       "description": "Export Claude conversation as markdown"
     },
     "chatgpt-export": {
       "name": "ChatGPT Export",
       "category": "LLMs", 
-      "url": "https://raw.githubusercontent.com/kristomi/bookmarklets/refs/heads/main/scripts/llms/chatgpt.js",
-      "sites": ["chatgpt.com", "chat.openai.com"],
       "description": "Export ChatGPT conversation as markdown"
     }
   }

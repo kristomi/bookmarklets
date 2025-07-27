@@ -75,9 +75,8 @@ class ExtensionBuilder {
         const bundledScripts = {};
 
         for (const [scriptId, scriptConfig] of Object.entries(config.scripts)) {
-            // Extract filename from URL
-            const urlPath = new URL(scriptConfig.url).pathname;
-            const filename = urlPath.split('/').pop();
+            // Derive filename from script key name (e.g., "substack-export" -> "substack.js")
+            const filename = this.deriveFilename(scriptId);
             const scriptPath = this.findScriptFile(filename);
 
             if (scriptPath) {
@@ -94,6 +93,22 @@ class ExtensionBuilder {
         }
 
         return bundledScripts;
+    }
+
+    deriveFilename(scriptId) {
+        // Convert script key to filename automatically
+        // e.g., "substack-export" -> "substack.js"
+        // e.g., "kindle-highlights" -> "kindle-highlights.js"
+        // e.g., "claude-export" -> "claude.js"
+        // e.g., "chatgpt-export" -> "chatgpt.js"
+        
+        // For *-export scripts, remove the "-export" suffix
+        if (scriptId.endsWith('-export')) {
+            return scriptId.replace('-export', '.js');
+        }
+        
+        // For all other scripts, just add .js
+        return `${scriptId}.js`;
     }
 
     findScriptFile(filename) {
@@ -145,7 +160,6 @@ ${script.content}
                 {
                     name: script.name,
                     category: script.category,
-                    sites: script.sites,
                     description: script.description,
                     filename: script.filename,
                     scriptFile: `script_${scriptId.replace(/[^a-zA-Z0-9]/g, '_')}.js`
@@ -350,7 +364,6 @@ window.SCRIPT_METADATA = ${JSON.stringify(scriptMetadata, null, 2)};
                 {
                     name: script.name,
                     category: script.category,
-                    sites: script.sites,
                     description: script.description,
                     filename: script.filename,
                     scriptFile: `script_${scriptId.replace(/[^a-zA-Z0-9]/g, '_')}.js`
@@ -427,7 +440,6 @@ class ScriptManager {
         button.innerHTML = \`
             <div class="script-name">\${script.name}</div>
             <div class="script-description">\${script.description}</div>
-            <div class="script-sites">Sites: \${script.sites.join(', ')}</div>
         \`;
         
         if (isCompatible) {
@@ -438,14 +450,8 @@ class ScriptManager {
     }
     
     isScriptCompatible(script) {
-        if (!this.currentTab) return false;
-        
-        const currentDomain = new URL(this.currentTab.url).hostname;
-        return script.sites.some(site => 
-            currentDomain.includes(site) || 
-            site.includes(currentDomain) ||
-            currentDomain === 'localhost'
-        );
+        // Allow all scripts to run on any site
+        return true;
     }
     
     async runScript(script) {

@@ -1,16 +1,16 @@
 # Kristomi's Scripts - Chrome Extension
 
-A Chrome extension that provides useful JavaScript utilities for web scraping and data export. Originally designed as a collection of bookmarklets, this has evolved into a browser extension that offers a clean, user-friendly interface for running specialized scripts on various websites.
+A Chrome extension that provides useful JavaScript utilities for web scraping and data export. Originally designed as a collection of bookmarklets, this has evolved into a browser extension that offers a clean, user-friendly interface for running specialized scripts on any website.
 
 ## 🚀 What is this?
 
 This extension provides a curated collection of JavaScript utilities that can be executed on web pages with a single click. It's particularly useful for:
 
 - **Data Export**: Extract and download conversations from AI platforms like ChatGPT and Claude
-- **Web Scraping**: Collect structured data from websites (like Kindle highlights)
+- **Web Scraping**: Collect structured data from websites (like Kindle highlights, Substack articles)
 - **Content Management**: Process and format web content for personal use
 
-The extension uses a popup interface that dynamically shows relevant scripts based on the current website you're visiting.
+The extension features a popup interface with all scripts available on any website - no site restrictions!
 
 ## 📦 Installation
 
@@ -23,26 +23,41 @@ The extension uses a popup interface that dynamically shows relevant scripts bas
 
 ### 📚 Kindle Highlights Extractor
 
-**Target Site**: `read.amazon.com/kp/notebook`
-
 Extracts highlights from your Amazon Kindle notebook and exports them as a formatted Markdown file.
 
 **Features:**
 - **Book Selection Interface**: Choose which books to export from an interactive overlay
 - **Bulk Selection**: Select all books at once or pick individual titles
 - **Rich Metadata**: Includes book title, author, and annotation date
-- **Markdown Export**: Clean, readable format perfect for note-taking apps
+- **Interactive Modal**: Copy to clipboard or download with smart filename generation
 - **Duplicate Filtering**: Automatically removes duplicate highlights
 
 **How to use:**
-1. Navigate to your Kindle notebook page
+1. Navigate to your Kindle notebook page (`read.amazon.com/kp/notebook`)
 2. Click the extension icon and select "Kindle Highlights"
 3. Choose which books you want to export
-4. The script will automatically scroll through your highlights and download a `.md` file
+4. The script will automatically scroll through your highlights and show a modal with the results
+5. Copy to clipboard or download as a `.md` file
+
+### 📰 Substack Article Export
+
+**NEW!** Converts Substack articles (and other blog posts) to clean Markdown format with smart content extraction.
+
+**Features:**
+- **Smart Content Detection**: Automatically finds and extracts article content
+- **Rich Formatting**: Preserves headings, paragraphs, lists, quotes, images, and tables
+- **Inline Formatting**: Converts bold, italic, code, and links to Markdown
+- **UI Element Filtering**: Skips navigation, buttons, and other non-content elements
+- **Interactive Modal**: Copy to clipboard or download with article title as filename
+- **Image Handling**: Converts images to Markdown with absolute URLs
+
+**How to use:**
+1. Navigate to any Substack article (or other blog post)
+2. Click the extension icon and select "Substack Article Export"
+3. The script will extract the article content and show it in a modal
+4. Copy to clipboard or download as a `.md` file with the article title
 
 ### 🤖 ChatGPT Conversation Exporter
-
-**Target Sites**: `chatgpt.com`, `chat.openai.com`
 
 Exports entire ChatGPT conversations as well-formatted Markdown files with proper source attribution.
 
@@ -60,8 +75,6 @@ Exports entire ChatGPT conversations as well-formatted Markdown files with prope
 4. A markdown file will be downloaded with the full conversation
 
 ### 💬 Claude Conversation Exporter
-
-**Target Site**: `claude.ai`
 
 Exports Claude conversations with clean formatting and proper message attribution.
 
@@ -83,6 +96,8 @@ Exports Claude conversations with clean formatting and proper message attributio
 ### Adding New Scripts
 
 1. Create your script file in the appropriate subfolder under `scripts/`
+   - Use `scripts/scrapers/` for content extraction scripts
+   - Use `scripts/llms/` for AI platform scripts
 2. Add the script configuration to `config.json`
 3. Run `npm run build` to update the extension
 4. Reload the extension in Chrome
@@ -93,12 +108,30 @@ Each script in `config.json` should include:
 ```json
 {
   "name": "Display Name",
-  "category": "Category",
-  "url": "path/to/script.js",
-  "sites": ["domain1.com", "domain2.com"],
-  "description": "Brief description"
+  "category": "Scrapers|LLMs",
+  "description": "Brief description of what the script does"
 }
 ```
+
+**That's it!** The build system automatically:
+- Derives the filename from the script key using simple rules:
+  - `"script-name-export"` → `script-name.js` (removes `-export` suffix)
+  - `"script-name"` → `script-name.js` (adds `.js` extension)
+- Finds the script in the appropriate folder
+- Bundles it into the extension
+
+**Examples:**
+- `"substack-export"` → looks for `substack.js`
+- `"kindle-highlights"` → looks for `kindle-highlights.js`
+- `"claude-export"` → looks for `claude.js`
+
+### Recent Improvements
+
+- ✅ **No Site Restrictions**: All scripts now work on any website
+- ✅ **Simplified Configuration**: No more URLs or site lists needed
+- ✅ **Smart Filename Detection**: Automatic mapping from script keys to files
+- ✅ **Interactive Modals**: Copy/download interfaces for better UX
+- ✅ **Local-Only Build**: No external dependencies, all files are bundled locally
 
 ## 📄 License
 
