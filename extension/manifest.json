@@ -36,7 +36,7 @@
         "http://localhost:*/*",
         "https://*/*"
       ],
-      "js": ["content.js"],
+      "js": ["bundled-scripts.js"],
       "run_at": "document_idle"
     }
   ],

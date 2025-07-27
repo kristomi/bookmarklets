@@ -1,0 +1,24 @@
+{
+  "name": "kristomi-scripts-extension",
+  "version": "1.0.0",
+  "description": "Build script for Kristomi's Scripts Chrome Extension",
+  "main": "build.js",
+  "scripts": {
+    "build": "node build.js",
+    "clean": "rm -rf build",
+    "dev": "npm run build && echo 'Build complete. Load the build/ folder as an unpacked extension in Chrome.'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "bookmarklets",
+    "web-scraping",
+    "claude",
+    "chatgpt",
+    "kindle"
+  ],
+  "author": "Kristomi",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

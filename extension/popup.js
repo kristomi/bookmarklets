@@ -30,6 +30,8 @@ class ScriptManager {
         try {
             this.showStatus('Checking for updates...', 'info');
             
+            console.log('Loading config from:', this.configUrl);
+            
             // Try to get fresh config from GitHub
             const response = await fetch(this.configUrl, { 
                 cache: 'no-cache',
@@ -39,8 +41,11 @@ class ScriptManager {
                 }
             });
             
+            console.log('Config fetch response:', response.status, response.statusText);
+            
             if (response.ok) {
                 const freshConfig = await response.json();
+                console.log('Fresh config loaded:', freshConfig);
                 
                 // Compare with cached version
                 const cached = await chrome.storage.local.get(['config', 'lastUpdate']);
@@ -65,19 +70,23 @@ class ScriptManager {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
         } catch (error) {
-            console.warn('Failed to fetch fresh config, using cached:', error);
+            console.error('Failed to fetch fresh config, using cached:', error);
             
             // Fallback to cached config
             const cached = await chrome.storage.local.get(['config']);
             if (cached.config) {
+                console.log('Using cached config:', cached.config);
                 this.config = cached.config;
                 this.showStatus('Using cached configuration (offline)', 'info');
             } else {
+                console.log('No cached config, using default');
                 // Ultimate fallback to embedded config
                 this.config = this.getDefaultConfig();
                 this.showStatus('Using default configuration', 'info');
             }
         }
+        
+        console.log('Final config to be used:', this.config);
     }
     
     getDefaultConfig() {
@@ -91,13 +100,27 @@ class ScriptManager {
                     "secondary": "#764ba2"
                 }
             },
-            "categories": {
-                "Scrapers": {
-                    "Kindle Highlights": "kindle-highlights"
+            "scripts": {
+                "kindle-highlights": {
+                    "name": "Kindle Highlights",
+                    "category": "Scrapers",
+                    "url": "https://raw.githubusercontent.com/kristomi/bookmarklets/refs/heads/main/scripts/scrapers/kindle-highlights.js",
+                    "sites": ["read.amazon.com"],
+                    "description": "Extract highlights from Kindle notebook"
                 },
-                "LLMs": {
-                    "Claude Export": "claude-export",
-                    "ChatGPT Export": "chatgpt-export"
+                "claude-export": {
+                    "name": "Claude Export", 
+                    "category": "LLMs",
+                    "url": "https://raw.githubusercontent.com/kristomi/bookmarklets/refs/heads/main/scripts/llms/claude.js",
+                    "sites": ["claude.ai"],
+                    "description": "Export Claude conversation as markdown"
+                },
+                "chatgpt-export": {
+                    "name": "ChatGPT Export",
+                    "category": "LLMs", 
+                    "url": "https://raw.githubusercontent.com/kristomi/bookmarklets/refs/heads/main/scripts/llms/chatgpt.js",
+                    "sites": ["chatgpt.com", "chat.openai.com"],
+                    "description": "Export ChatGPT conversation as markdown"
                 }
             }
         };
@@ -171,7 +194,15 @@ class ScriptManager {
                     button.title = `This script only works on: ${allowedSites}`;
                 }
                 
-                button.addEventListener('click', () => this.runScript(scriptInfo.url, scriptInfo.name));
+                button.addEventListener('click', () => {
+                    console.log(`Button clicked for ${scriptInfo.name}`);
+                    console.log(`Script URL: '${scriptInfo.url}'`);
+                    console.log(`Script info:`, scriptInfo);
+                    console.log(`Calling runScript with URL: '${scriptInfo.url}' and name: '${scriptInfo.name}'`);
+                    
+                    // Call runScript directly with the values
+                    this.runScript(scriptInfo.url, scriptInfo.name);
+                });
                 categoryDiv.appendChild(button);
             });
             
