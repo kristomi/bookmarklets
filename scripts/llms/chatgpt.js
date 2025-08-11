@@ -204,6 +204,15 @@ Prøv å:
     }
     
     function parseHTMLContent(html) {
+        function normalizeRole(raw) {
+            if (!raw) return null;
+            const r = String(raw).trim().toLowerCase();
+            if (r === 'user') return 'user';
+            if (r === 'assistant') return 'assistant';
+            if (r === 'system') return 'system';
+            if (r === 'tool') return 'tool';
+            return null;
+        }
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         const messages = [];
@@ -245,12 +254,19 @@ Prøv å:
         }
         
         messageElements.forEach((el, index) => {
-            let role = 'Unknown';
+            // Determine role
+            let role = null;
             const roleAttr = el.getAttribute('data-message-author-role');
-            if (roleAttr) {
-                role = roleAttr === 'user' ? 'User' : 'Assistant';
-            } else {
-                role = index % 2 === 0 ? 'User' : 'Assistant';
+            role = normalizeRole(roleAttr);
+            // Heuristics: check common class hints if attribute missing
+            if (!role) {
+                const classStr = el.className ? String(el.className).toLowerCase() : '';
+                if (/user/.test(classStr)) role = 'user';
+                else if (/assistant|gpt|model/.test(classStr)) role = 'assistant';
+            }
+            // Fallback to alternating
+            if (!role) {
+                role = index % 2 === 0 ? 'user' : 'assistant';
             }
             
             // Extract content
@@ -290,7 +306,7 @@ Prøv å:
             
             if (content.trim()) {
                 messages.push({
-                    role: role,
+                    role: role, // always lowercase: 'user' | 'assistant' | 'system' | 'tool'
                     content: content
                 });
             }
@@ -500,7 +516,12 @@ Prøv å:
         
         // Add messages
         messages.forEach((message, index) => {
-            const senderName = message.role === 'user' ? 'Bruker' : 'ChatGPT';
+            const role = (message.role || '').toString().toLowerCase();
+            let senderName = 'ChatGPT';
+            if (role === 'user') senderName = 'Bruker';
+            else if (role === 'assistant') senderName = 'ChatGPT';
+            else if (role === 'system') senderName = 'System';
+            else if (role === 'tool') senderName = 'Verktøy';
             
             markdown.push(`## ${senderName}`);
             markdown.push('');
