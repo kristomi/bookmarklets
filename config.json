@@ -1,8 +1,8 @@
 {
   "title": "Kristomi's Bookmarklets",
   "description": "Select a script to run on this page",
-  "version": "1.1.0",
-  "updated": "2025-07-23",
+  "version": "1.4.0",
+  "updated": "2026-06-14",
   "theme": {
     "colors": {
       "primary": "#667eea",
@@ -62,6 +62,16 @@
       "name": "Substack Article Export",
       "category": "Scrapers",
       "description": "Extract Substack articles as markdown"
+    },
+    "webpage-export": {
+      "name": "Webpage Export",
+      "category": "Scrapers",
+      "description": "Extract any webpage as markdown, with optional API posting"
+    },
+    "cookies-export": {
+      "name": "Cookies Export",
+      "category": "Scrapers",
+      "description": "Export cookies for a chosen URL as a cookies.txt file"
     },
     "claude-export": {
       "name": "Claude Export", 

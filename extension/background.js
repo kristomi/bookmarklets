@@ -99,7 +99,12 @@ class BackgroundService {
                     const config = await this.getStoredConfig();
                     sendResponse({ success: true, config });
                     break;
-                    
+
+                case 'getCookies':
+                    const cookies = await this.getCookies(message.url);
+                    sendResponse({ success: true, cookies });
+                    break;
+
                 case 'logScriptExecution':
                     await this.logScriptExecution(
                         message.scriptId, 
@@ -183,6 +188,18 @@ class BackgroundService {
     async getStoredConfig() {
         const stored = await chrome.storage.local.get(['config']);
         return stored.config || this.getDefaultConfig();
+    }
+
+    // Return all cookies that apply to the given URL (including HttpOnly ones).
+    // chrome.cookies is only available in the background context, so content
+    // scripts proxy their requests here.
+    async getCookies(url) {
+        if (!url) {
+            throw new Error('Mangler URL');
+        }
+        // Validate the URL up front so we return a clean error.
+        new URL(url);
+        return await chrome.cookies.getAll({ url });
     }
     
     getDefaultConfig() {

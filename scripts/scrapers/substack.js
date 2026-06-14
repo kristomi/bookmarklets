@@ -279,6 +279,11 @@
         // Create modal HTML
         const modal = document.createElement('div');
         modal.id = 'markdown-converter-modal';
+
+        const API_URL = 'https://curator.midttom.me/api/content';
+        const apiKey = localStorage.getItem('curator_api_key') || '';
+        const hasApiKey = apiKey.length > 0;
+
         modal.innerHTML = `
             <div style="
                 position: fixed;
@@ -298,7 +303,7 @@
                     border-radius: 8px;
                     width: 90%;
                     max-width: 800px;
-                    max-height: 80vh;
+                    max-height: 85vh;
                     display: flex;
                     flex-direction: column;
                     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
@@ -309,9 +314,11 @@
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
+                        flex-wrap: wrap;
+                        gap: 8px;
                     ">
                         <h2 style="margin: 0; color: #1a1a1a; font-size: 18px;">Article Markdown</h2>
-                        <div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                             <button id="copy-markdown-btn" style="
                                 background: #007cba;
                                 color: white;
@@ -319,9 +326,8 @@
                                 padding: 8px 16px;
                                 border-radius: 4px;
                                 cursor: pointer;
-                                margin-right: 8px;
                                 font-size: 14px;
-                            ">Copy to Clipboard</button>
+                            ">Copy</button>
                             <button id="download-markdown-btn" style="
                                 background: #28a745;
                                 color: white;
@@ -329,9 +335,17 @@
                                 padding: 8px 16px;
                                 border-radius: 4px;
                                 cursor: pointer;
-                                margin-right: 8px;
                                 font-size: 14px;
                             ">Download</button>
+                            <button id="ss-post-api-btn" style="
+                                background: ${hasApiKey ? '#8b5cf6' : '#6b7280'};
+                                color: white;
+                                border: none;
+                                padding: 8px 16px;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-size: 14px;
+                            ">Post to Curator</button>
                             <button id="close-modal-btn" style="
                                 background: #6c757d;
                                 color: white;
@@ -343,12 +357,28 @@
                             ">Close</button>
                         </div>
                     </div>
+                    <div id="ss-api-status" style="
+                        display: none;
+                        padding: 10px 20px;
+                        font-size: 13px;
+                        border-bottom: 1px solid #e1e5e9;
+                    "></div>
                     <div style="
                         padding: 20px;
                         overflow-y: auto;
                         flex: 1;
                     ">
-                        <textarea id="markdown-content" readonly style="
+                        <input id="ss-title-input" type="text" value="${document.title.replace(/"/g, '&quot;')}" style="
+                            width: 100%;
+                            padding: 10px 12px;
+                            border: 1px solid #ddd;
+                            border-radius: 4px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            box-sizing: border-box;
+                            margin-bottom: 10px;
+                        ">
+                        <textarea id="markdown-content" style="
                             width: 100%;
                             height: 400px;
                             border: 1px solid #ddd;
@@ -359,76 +389,58 @@
                             line-height: 1.4;
                             resize: vertical;
                             box-sizing: border-box;
-                        ">${markdown}</textarea>
+                        ">${markdown.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
                         <div style="
                             margin-top: 12px;
                             color: #666;
                             font-size: 12px;
                         ">
-                            Word count: ${markdown.split(/\s+/).length} words | 
-                            Character count: ${markdown.length} characters
+                            ${markdown.split(/\s+/).filter(w => w).length} words |
+                            ${markdown.length} characters
+                            ${hasApiKey ? '' : ' | Click "Post to Curator" to set your API key'}
                         </div>
                     </div>
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(modal);
-        
-        // Add event listeners
-        const copyBtn = modal.querySelector('#copy-markdown-btn');
-        const downloadBtn = modal.querySelector('#download-markdown-btn');
-        const closeBtn = modal.querySelector('#close-modal-btn');
-        const textarea = modal.querySelector('#markdown-content');
-        
-        copyBtn.addEventListener('click', async () => {
+
+        const getContent = () => modal.querySelector('#markdown-content').value;
+
+        // Copy
+        modal.querySelector('#copy-markdown-btn').addEventListener('click', async function() {
+            const btn = this;
             try {
-                await navigator.clipboard.writeText(markdown);
-                copyBtn.textContent = 'Copied!';
-                copyBtn.style.background = '#28a745';
-                setTimeout(() => {
-                    copyBtn.textContent = 'Copy to Clipboard';
-                    copyBtn.style.background = '#007cba';
-                }, 2000);
+                await navigator.clipboard.writeText(getContent());
             } catch (err) {
-                // Fallback: select text
-                textarea.select();
+                modal.querySelector('#markdown-content').select();
                 document.execCommand('copy');
-                copyBtn.textContent = 'Copied!';
-                copyBtn.style.background = '#28a745';
-                setTimeout(() => {
-                    copyBtn.textContent = 'Copy to Clipboard';
-                    copyBtn.style.background = '#007cba';
-                }, 2000);
             }
+            btn.textContent = 'Copied!';
+            btn.style.background = '#28a745';
+            setTimeout(() => { btn.textContent = 'Copy'; btn.style.background = '#007cba'; }, 2000);
         });
-        
-        downloadBtn.addEventListener('click', () => {
-            // Get the page title for filename
+
+        // Download
+        modal.querySelector('#download-markdown-btn').addEventListener('click', function() {
+            const btn = this;
             const titleElement = document.querySelector('h1.post-title, h1, .post-title, .title') ||
                                  document.querySelector('h1');
             let filename = 'article.md';
-            
+
             if (titleElement) {
-                // Clean the title for use as filename
                 let title = titleElement.textContent.trim()
-                    .replace(/[<>:"/\\|?*]/g, '') // Remove only illegal filename characters
-                    .replace(/\s+/g, '-') // Replace spaces with hyphens
-                    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
-                    .substring(0, 100); // Limit length to 100 characters
-                
-                // Ensure we have a valid filename
-                if (title.length === 0) {
-                    title = 'article';
-                }
-                
-                // Add timestamp for uniqueness
-                const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+                    .replace(/[<>:"/\\|?*]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/^-+|-+$/g, '')
+                    .substring(0, 100);
+                if (title.length === 0) title = 'article';
+                const timestamp = new Date().toISOString().slice(0, 10);
                 filename = `${title}-${timestamp}.md`;
             }
-            
-            // Create blob and download
-            const blob = new Blob([markdown], { type: 'text/markdown' });
+
+            const blob = new Blob([getContent()], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -437,28 +449,112 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
-            // Visual feedback
-            downloadBtn.textContent = 'Downloaded!';
-            downloadBtn.style.background = '#218838';
-            setTimeout(() => {
-                downloadBtn.textContent = 'Download';
-                downloadBtn.style.background = '#28a745';
-            }, 2000);
+
+            btn.textContent = 'Downloaded!';
+            btn.style.background = '#218838';
+            setTimeout(() => { btn.textContent = 'Download'; btn.style.background = '#28a745'; }, 2000);
         });
-        
-        closeBtn.addEventListener('click', () => {
-            modal.remove();
-        });
-        
-        // Close on background click
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
+
+        // Post to Curator API
+        modal.querySelector('#ss-post-api-btn').addEventListener('click', async function() {
+            const btn = this;
+            const statusEl = modal.querySelector('#ss-api-status');
+            const currentApiKey = localStorage.getItem('curator_api_key') || '';
+
+            if (!currentApiKey) {
+                statusEl.style.display = 'block';
+                statusEl.style.background = '#fffbeb';
+                statusEl.style.color = '#92400e';
+                statusEl.innerHTML = `
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <label style="white-space:nowrap; font-weight:600;">API Key:</label>
+                        <input id="ss-api-key-input" type="password" placeholder="Paste your API key" style="
+                            flex:1; padding:6px 10px; border:1px solid #d1d5db; border-radius:4px;
+                            font-size:13px; font-family:monospace;
+                        ">
+                        <button id="ss-save-key-btn" style="
+                            background:#8b5cf6; color:white; border:none; padding:6px 14px;
+                            border-radius:4px; cursor:pointer; font-size:13px; white-space:nowrap;
+                        ">Save</button>
+                    </div>`;
+                const keyInput = statusEl.querySelector('#ss-api-key-input');
+                keyInput.focus();
+                const saveKey = () => {
+                    const key = keyInput.value.trim();
+                    if (key) {
+                        localStorage.setItem('curator_api_key', key);
+                        statusEl.style.background = '#dcfce7';
+                        statusEl.style.color = '#166534';
+                        statusEl.textContent = 'API key saved! Click "Post to Curator" again.';
+                        btn.style.background = '#8b5cf6';
+                    }
+                };
+                statusEl.querySelector('#ss-save-key-btn').addEventListener('click', saveKey);
+                keyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveKey(); });
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Posting...';
+            btn.style.opacity = '0.7';
+            statusEl.style.display = 'block';
+            statusEl.style.background = '#eff6ff';
+            statusEl.style.color = '#1e40af';
+            statusEl.textContent = 'Sending to Curator...';
+
+            try {
+                const descMeta = document.querySelector('meta[property="og:description"]') ||
+                                document.querySelector('meta[name="description"]');
+                const payload = {
+                    url: window.location.href,
+                    title: modal.querySelector('#ss-title-input').value.trim(),
+                    description: descMeta ? descMeta.content.trim() : null,
+                    content_text: getContent()
+                };
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentApiKey}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const body = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${body}`);
+                }
+
+                statusEl.style.background = '#dcfce7';
+                statusEl.style.color = '#166534';
+                statusEl.textContent = `Saved to Curator (${response.status})`;
+                btn.textContent = 'Saved!';
+                btn.style.background = '#28a745';
+                setTimeout(() => {
+                    btn.textContent = 'Post to Curator';
+                    btn.style.background = '#8b5cf6';
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }, 3000);
+            } catch (err) {
+                statusEl.style.background = '#fef2f2';
+                statusEl.style.color = '#991b1b';
+                statusEl.textContent = `Error: ${err.message}`;
+                btn.textContent = 'Failed';
+                btn.style.background = '#dc2626';
+                setTimeout(() => {
+                    btn.textContent = 'Post to Curator';
+                    btn.style.background = '#8b5cf6';
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }, 3000);
             }
         });
-        
-        // Close on Escape key
+
+        // Close
+        modal.querySelector('#close-modal-btn').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => { if (e.target === modal.firstElementChild) modal.remove(); });
         document.addEventListener('keydown', function escHandler(e) {
             if (e.key === 'Escape') {
                 modal.remove();

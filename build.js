@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 class ExtensionBuilder {
     constructor() {
@@ -44,11 +45,18 @@ class ExtensionBuilder {
             this.updatePopupFiles(config, bundledScripts);
             console.log('🎨 Updated popup files');
 
+            // Create zip
+            const zipName = `kristomi-scripts-v${config.version}.zip`;
+            const zipPath = path.join(this.rootDir, 'extension', zipName);
+            this.createZip(zipPath);
+            console.log(`📦 Created ${zipName}`);
+
             console.log(`\n✅ Build complete! Extension ready in: ${this.buildDir}`);
-            console.log('\n📦 To install:');
-            console.log('1. Open Chrome and go to chrome://extensions/');
+            console.log(`   Zip: extension/${zipName}`);
+            console.log('\nTo install:');
+            console.log('1. Open Chrome/Edge → extensions page');
             console.log('2. Enable "Developer mode"');
-            console.log('3. Click "Load unpacked" and select the build folder');
+            console.log('3. Drag the zip or "Load unpacked" the build/ folder');
 
         } catch (error) {
             console.error('❌ Build failed:', error.message);
@@ -64,6 +72,14 @@ class ExtensionBuilder {
 
     createBuildDir() {
         fs.mkdirSync(this.buildDir, { recursive: true });
+    }
+
+    createZip(zipPath) {
+        // Remove old zip if it exists
+        if (fs.existsSync(zipPath)) {
+            fs.unlinkSync(zipPath);
+        }
+        execSync(`cd "${this.buildDir}" && zip -r "${zipPath}" .`);
     }
 
     loadConfig() {

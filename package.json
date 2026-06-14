@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node build.js",
     "clean": "rm -rf build",
-    "dev": "npm run build && echo 'Build complete. Load the build/ folder as an unpacked extension in Chrome.'"
+    "dev": "npm run build && echo 'Build complete. Load the build/ folder as an unpacked extension in Chrome.'",
+    "package": "npm run build"
   },
   "keywords": [
     "chrome-extension",

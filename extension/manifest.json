@@ -10,15 +10,13 @@
     "notifications",
     "contextMenus",
     "idle",
-    "scripting"
+    "scripting",
+    "cookies"
   ],
-  
+
   "host_permissions": [
-    "https://claude.ai/*",
-    "https://chatgpt.com/*",
-    "https://chat.openai.com/*",
-    "https://read.amazon.com/*",
-    "https://raw.githubusercontent.com/*"
+    "http://*/*",
+    "https://*/*"
   ],
   
   "action": {
