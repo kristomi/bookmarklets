@@ -1,8 +1,8 @@
 {
   "title": "Kristomi's Bookmarklets",
   "description": "Select a script to run on this page",
-  "version": "1.4.0",
-  "updated": "2026-06-14",
+  "version": "1.5.0",
+  "updated": "2026-08-12",
   "theme": {
     "colors": {
       "primary": "#667eea",
@@ -62,6 +62,11 @@
       "name": "Substack Article Export",
       "category": "Scrapers",
       "description": "Extract Substack articles as markdown"
+    },
+    "substack-audio-export": {
+      "name": "Substack Audio Export",
+      "category": "Scrapers",
+      "description": "Find podcast, voiceover and video files behind a Substack post"
     },
     "webpage-export": {
       "name": "Webpage Export",

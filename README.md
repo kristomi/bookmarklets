@@ -57,6 +57,26 @@ Extracts highlights from your Amazon Kindle notebook and exports them as a forma
 3. The script will extract the article content and show it in a modal
 4. Copy to clipboard or download as a `.md` file with the article title
 
+### 🎧 Substack Audio Export
+
+Finds the audio and video files behind a Substack post — podcast episodes, human voiceovers, AI text-to-speech and video uploads — and lets you copy or download them.
+
+**Features:**
+- **Reads the page data**: Parses `window._preloads` out of the inline `<script>` tag, which is where Substack keeps the real media URLs
+- **All media types**: Podcast episodes and free previews, voiceovers, AI text-to-speech, and Mux video uploads
+- **Fallbacks**: Also scans `<audio>`/`<video>` elements, Open Graph tags, JSON-LD, and URLs embedded in the post body
+- **Handles SPA navigation**: If the inline data belongs to a different post, refetches the current one from `/api/v1/posts/<slug>`
+- **Real downloads**: Saves files through `chrome.downloads` in the background worker, since cross-origin downloads are blocked in the page itself
+- **yt-dlp ready**: Copies a ready-made `yt-dlp` command — pair it with Cookies Export for subscriber-only media
+
+**How to use:**
+1. Navigate to a Substack post with a player
+2. Click the extension icon and select "Substack Audio Export"
+3. Copy or download any of the files that were found
+4. For streaming playlists (`.m3u8`), use the copied `yt-dlp` command instead of the download button
+
+If nothing is found, press play once and run the script again — some players only create the media element on demand.
+
 ### 🤖 ChatGPT Conversation Exporter
 
 Exports entire ChatGPT conversations as well-formatted Markdown files with proper source attribution.
@@ -122,6 +142,7 @@ Each script in `config.json` should include:
 
 **Examples:**
 - `"substack-export"` → looks for `substack.js`
+- `"substack-audio-export"` → looks for `substack-audio.js`
 - `"kindle-highlights"` → looks for `kindle-highlights.js`
 - `"claude-export"` → looks for `claude.js`
 

@@ -105,6 +105,11 @@ class BackgroundService {
                     sendResponse({ success: true, cookies });
                     break;
 
+                case 'downloadMedia':
+                    const download = await this.downloadMedia(message.url, message.filename);
+                    sendResponse({ success: true, ...download });
+                    break;
+
                 case 'logScriptExecution':
                     await this.logScriptExecution(
                         message.scriptId, 
@@ -201,7 +206,99 @@ class BackgroundService {
         new URL(url);
         return await chrome.cookies.getAll({ url });
     }
-    
+
+    // Save a media file to disk. Content scripts cannot do this themselves:
+    // cross-origin media is blocked by CORS, and the download attribute on an
+    // <a> is ignored cross-origin so the browser would just navigate to it.
+    // The service worker has host permissions for every origin.
+    async downloadMedia(url, filename) {
+        if (!url) {
+            throw new Error('Mangler URL');
+        }
+        // Validate the URL up front so we return a clean error.
+        new URL(url);
+
+        // Media URLs often carry no file extension - Substack podcast links are
+        // redirect endpoints - so the content script sends ".bin" and we work
+        // out the real type here, where we can make a cross-origin request.
+        let name = filename;
+        if (name && /\.bin$/i.test(name)) {
+            const extension = await this.resolveMediaExtension(url);
+            // Without an extension Chrome sniffs the type itself, which beats
+            // saving a file that says .bin.
+            name = extension ? name.replace(/\.bin$/i, '.' + extension) : undefined;
+        }
+
+        const downloadId = await chrome.downloads.download({
+            url,
+            filename: name || undefined,
+            saveAs: false
+        });
+
+        return { downloadId, filename: name || null };
+    }
+
+    // Ask the server what the file actually is. Content-Disposition wins
+    // because the server named the file itself, then the MIME type, then the
+    // URL we were redirected to.
+    async resolveMediaExtension(url) {
+        const MIME_EXTENSIONS = {
+            'audio/mpeg': 'mp3',
+            'audio/mp3': 'mp3',
+            'audio/mp4': 'm4a',
+            'audio/x-m4a': 'm4a',
+            'audio/aac': 'aac',
+            'audio/ogg': 'ogg',
+            'audio/opus': 'opus',
+            'audio/wav': 'wav',
+            'audio/x-wav': 'wav',
+            'audio/flac': 'flac',
+            'video/mp4': 'mp4',
+            'video/quicktime': 'mov',
+            'video/webm': 'webm',
+            'application/vnd.apple.mpegurl': 'm3u8',
+            'application/x-mpegurl': 'm3u8'
+        };
+
+        let response = null;
+        try {
+            response = await fetch(url, { method: 'HEAD', credentials: 'include' });
+        } catch (e) { /* fall through to the ranged GET */ }
+
+        // Some CDNs reject HEAD, so ask for a single byte instead.
+        if (!response || !response.ok) {
+            try {
+                response = await fetch(url, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: { 'Range': 'bytes=0-0' }
+                });
+            } catch (e) {
+                return null;
+            }
+        }
+        if (!response || !response.ok) return null;
+
+        const disposition = response.headers.get('content-disposition') || '';
+        const named = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)/i);
+        if (named) {
+            const fromName = named[1].match(/\.([a-z0-9]{2,5})$/i);
+            if (fromName) return fromName[1].toLowerCase();
+        }
+
+        const mime = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+        if (MIME_EXTENSIONS[mime]) return MIME_EXTENSIONS[mime];
+
+        // fetch follows redirects, so response.url is the file we landed on.
+        try {
+            const finalPath = new URL(response.url || url).pathname;
+            const fromPath = finalPath.match(/\.([a-z0-9]{2,5})$/i);
+            if (fromPath) return fromPath[1].toLowerCase();
+        } catch (e) { /* keep the null */ }
+
+        return null;
+    }
+
     getDefaultConfig() {
         return {
             "title": "Kristomi's Scripts",
